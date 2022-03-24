@@ -127,12 +127,17 @@ int main(int argc, char* argv[])
 		// read File and send data:
 		char bit_str[27] = { 0 }, bit_str_hamming[32] = { 0 }, buffer[BUFFER_SIZE] = { 0 };
 		int packet_size = 0, bits_read = 0, bits_sent = 0;
-		int i = 0;
-		while (fread(bit_str, 1, 26, f))
+		int i = 0, read = 0;
+		
+		while ((read =fread(bit_str, 1, 26, f)))
 		{
-			bits_read += 26 * 8;
+			
+			bits_read += read * 8;
+			if (read < 26) {
+				bit_str[read] = '\0';
+			}
 			Encoder(bit_str, bit_str_hamming);
-			bits_sent += 31 * 8;
+			bits_sent += (read+5) * 8;
 			strncpy(buffer + packet_size, bit_str_hamming, 31);
 			packet_size += 31;
 			//printf("%d\n", strlen(buffer));
