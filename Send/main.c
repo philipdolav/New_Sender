@@ -47,7 +47,7 @@ void Encoder(char* uncoded, char* coded) {
 		data[(i * 31) + 1] = data[i * 31 + 2] ^ data[i * 31 + 5] ^ data[i * 31 + 6] ^ data[i * 31 + 9] ^ data[i * 31 + 10] ^ data[i * 31 + 13] ^ data[i * 31 + 14] ^ data[i * 31 + 17] ^ data[i * 31 + 18] ^ data[i * 31 + 21] ^ data[i * 31 + 22] ^ data[i * 31 + 25] ^ data[i * 31 + 26] ^ data[i * 31 + 29] ^ data[i * 31 + 30];
 		data[(i * 31) + 3] = data[i * 31 + 4] ^ data[i * 31 + 5] ^ data[i * 31 + 6] ^ data[i * 31 + 11] ^ data[i * 31 + 12] ^ data[i * 31 + 13] ^ data[i * 31 + 14] ^ data[i * 31 + 19] ^ data[i * 31 + 20] ^ data[i * 31 + 21] ^ data[i * 31 + 22] ^ data[i * 31 + 27] ^ data[i * 31 + 28] ^ data[i * 31 + 29] ^ data[i * 31 + 30];
 		data[(i * 31) + 7] = data[i * 31 + 8] ^ data[i * 31 + 9] ^ data[i * 31 + 10] ^ data[i * 31 + 11] ^ data[i * 31 + 12] ^ data[i * 31 + 13] ^ data[i * 31 + 14]^ data[i * 31 + 23] ^ data[i * 31 + 24] ^ data[i * 31 + 25] ^ data[i * 31 + 26] ^ data[i * 31 + 27] ^ data[i * 31 + 28] ^ data[i * 31 + 29] ^ data[i * 31 + 30];
-		data[(i * 31) + 15] = data[i * 31 + 16] ^ data[i * 31 + 17] ^ data[i * 31 + 18] ^ data[i * 31 + 19] ^ data[i * 31 + 20] ^ data[i * 31 + 21] ^ data[i * 31 + 22];
+		data[(i * 31) + 15] = data[i * 31 + 16] ^ data[i * 31 + 17] ^ data[i * 31 + 18] ^ data[i * 31 + 19] ^ data[i * 31 + 20] ^ data[i * 31 + 21] ^ data[i * 31 + 22] ^ data[i * 31 + 23] ^ data[i * 31 + 24] ^ data[i * 31 + 25] ^ data[i * 31 + 26] ^ data[i * 31 + 27] ^ data[i * 31 + 28] ^ data[i * 31 + 29] ^ data[i * 31 + 30];
 	}
 
 	for (i = 0; i < 31; i++) {//turn coded bits into 15 char string
@@ -62,7 +62,7 @@ void Encoder(char* uncoded, char* coded) {
 
 }
 
-int cleanupAll(char* recieved, int connected) {
+int cleanupAll() {
 	int to_return = 0;
 	int result = WSACleanup();
 	if (result != 0) {
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 		// store in "f_name"
 		scanf("%s", f_name);
 		if (!strcmp(f_name, "quit"))
-			return cleanupAll(f_name, 0);
+			return cleanupAll();
 		FILE* f = NULL;
 		f = fopen(f_name, "rb"); //Open a binary file for reading. The file must exist.
 		if (f == NULL)
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 			printf("File error. Coudn't open file\n");// CHECKING IF OPENED SUCCSESSFULLY
 			return -1;
 		}
-		printf("File opened successfully\n");
+		//printf("File opened successfully\n");
 
 		// read File and send data:
 		char bit_str[27] = { 0 }, bit_str_hamming[32] = { 0 }, buffer[BUFFER_SIZE] = { 0 };
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
 			//printf("%d\n", strlen(buffer));
 			if (packet_size == BUFFER_SIZE - 1)
 			{
-				printf("sending packet num %d\n", i);
+				//printf("sending packet num %d\n", i);
 				i++;
 				//send data
 				if (send(client_s, buffer, strlen(buffer), 0) == SOCKET_ERROR)
@@ -168,10 +168,10 @@ int main(int argc, char* argv[])
 				printf("sendto() failed with error code : %d", WSAGetLastError());
 				exit(EXIT_FAILURE);
 			}
-			printf("sending packet num %d\n", i);
+			//printf("sending packet num %d\n", i);
 		}
 
-		printf("Fils length: %d\nsent %d:\n", bits_read, bits_sent);
+		printf("Files length: %d\nsent %d:\n", bits_read, bits_sent);
 
 		closesocket(client_s);
 		fclose(f);
