@@ -23,17 +23,19 @@
 SOCKET client_s;
 
 // translates a string of 26 bytes (-uncoded) into hamming form (-coded) by adding 5 parity bits (log(26) = 5)  .
-void Encoder(char* uncoded, char* coded) {
+void hamming_encoder(char* uncoded, char* coded) {
 	char data[248] = { 0 }; //8*31 
 	int i, j, skip = 0;
 
-	for (i = 0; i < 248; i++) {   //inserting -1 for all the places that are used for parity bits
+	//inserting -1 for all the places that are used for parity bits
+	for (i = 0; i < 248; i++) {   
 		if (i % 31 == 0 || i % 31 == 1 || i % 31 == 3 || i % 31 == 7 || i % 31 == 15) {
 			data[i] = -1;
 		}
 	}
 
-	for (i = 0; i < 26; i++) { //coding the word into bits format
+	//coding the word into bits format
+	for (i = 0; i < 26; i++) { 
 		for (j = 0; j < 8; j++) {
 			if (data[i * 8 + j + skip] == -1) skip++;
 			if (data[i * 8 + j + skip] == -1) skip++;
@@ -42,7 +44,8 @@ void Encoder(char* uncoded, char* coded) {
 		}
 	}
 
-	for (i = 0; i < 8; i++) {//
+	// calculatin the values of the parity bits
+	for (i = 0; i < 8; i++) {
 		data[i * 31] = data[i * 31 + 2] ^ data[i * 31 + 4] ^ data[i * 31 + 6] ^ data[i * 31 + 8] ^ data[i * 31 + 10] ^ data[i * 31 + 12] ^ data[i * 31 + 14] ^ data[i * 31 + 16] ^ data[i * 31 + 18] ^ data[i * 31 + 20] ^ data[i * 31 + 22] ^ data[i * 31 + 24] ^ data[i * 31 + 26] ^ data[i * 31 + 28] ^ data[i * 31 + 30];
 		data[(i * 31) + 1] = data[i * 31 + 2] ^ data[i * 31 + 5] ^ data[i * 31 + 6] ^ data[i * 31 + 9] ^ data[i * 31 + 10] ^ data[i * 31 + 13] ^ data[i * 31 + 14] ^ data[i * 31 + 17] ^ data[i * 31 + 18] ^ data[i * 31 + 21] ^ data[i * 31 + 22] ^ data[i * 31 + 25] ^ data[i * 31 + 26] ^ data[i * 31 + 29] ^ data[i * 31 + 30];
 		data[(i * 31) + 3] = data[i * 31 + 4] ^ data[i * 31 + 5] ^ data[i * 31 + 6] ^ data[i * 31 + 11] ^ data[i * 31 + 12] ^ data[i * 31 + 13] ^ data[i * 31 + 14] ^ data[i * 31 + 19] ^ data[i * 31 + 20] ^ data[i * 31 + 21] ^ data[i * 31 + 22] ^ data[i * 31 + 27] ^ data[i * 31 + 28] ^ data[i * 31 + 29] ^ data[i * 31 + 30];
@@ -50,7 +53,8 @@ void Encoder(char* uncoded, char* coded) {
 		data[(i * 31) + 15] = data[i * 31 + 16] ^ data[i * 31 + 17] ^ data[i * 31 + 18] ^ data[i * 31 + 19] ^ data[i * 31 + 20] ^ data[i * 31 + 21] ^ data[i * 31 + 22] ^ data[i * 31 + 23] ^ data[i * 31 + 24] ^ data[i * 31 + 25] ^ data[i * 31 + 26] ^ data[i * 31 + 27] ^ data[i * 31 + 28] ^ data[i * 31 + 29] ^ data[i * 31 + 30];
 	}
 
-	for (i = 0; i < 31; i++) {//turn coded bits into 15 char string
+	//turn coded bits into 31 char string
+	for (i = 0; i < 31; i++) {
 		coded[i] = 0;
 		for (j = 0; j < 8; j++) {
 			coded[i] = coded[i] * 2;
@@ -62,6 +66,7 @@ void Encoder(char* uncoded, char* coded) {
 
 }
 
+/* calls WSACleanup() and closing the socket*/
 int cleanupAll() {
 	int to_return = 0;
 	int result = WSACleanup();
@@ -126,18 +131,18 @@ int main(int argc, char* argv[])
 
 		// read File and send data:
 		char bit_str[27] = { 0 }, bit_str_hamming[32] = { 0 }, buffer[BUFFER_SIZE] = { 0 };
-		int packet_size = 0, bits_read = 0, bits_sent = 0;
+		int packet_size = 0, bytes_read = 0, bytes_sent = 0;
 		int i = 0, read = 0;
 		
 		while ((read =fread(bit_str, 1, 26, f)))
 		{
 			
-			bits_read += read * 8;
+			bytes_read += read;
 			if (read < 26) {
 				bit_str[read] = '\0';
 			}
-			Encoder(bit_str, bit_str_hamming);
-			bits_sent += (read+5) * 8;
+			hamming_encoder(bit_str, bit_str_hamming);
+			bytes_sent += read + strlen(bit_str_hamming) - strlen(bit_str);
 			strncpy(buffer + packet_size, bit_str_hamming, 31);
 			packet_size += 31;
 			//printf("%d\n", strlen(buffer));
@@ -153,7 +158,7 @@ int main(int argc, char* argv[])
 				}
 				for (int i = 0; i < BUFFER_SIZE; i++)
 				{
-					buffer[i] = 0;
+					buffer[i] = '\0';
 				}
 				packet_size = 0;
 			}
@@ -161,17 +166,22 @@ int main(int argc, char* argv[])
 		}
 		if (packet_size != BUFFER_SIZE - 1)
 		{
-			buffer[packet_size] = '\0';
+			for (i = packet_size; i <= BUFFER_SIZE-1; i++)
+				buffer[i] = '\0';
 			//sends remaining data after eof
 			if (send(client_s, buffer, strlen(buffer), 0) == SOCKET_ERROR)
 			{
 				printf("sendto() failed with error code : %d", WSAGetLastError());
 				exit(EXIT_FAILURE);
 			}
+			for (int i = 0; i < BUFFER_SIZE; i++)
+			{
+				buffer[i] = '\0';
+			}
 			//printf("sending packet num %d\n", i);
 		}
 
-		printf("Files length: %d\nsent %d:\n", bits_read, bits_sent);
+		printf("Files length: %d\nsent %d:\n", bytes_read, bytes_sent);
 
 		closesocket(client_s);
 		fclose(f);
