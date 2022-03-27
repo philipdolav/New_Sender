@@ -104,8 +104,8 @@ int main(int argc, char* argv[])
 		}
 		struct sockaddr_in client_addr; //Create a sockaddr_in object client_addr and set values.
 		client_addr.sin_family = AF_INET;
-		client_addr.sin_port = htons(atoi(port));			// port address
-		client_addr.sin_addr.s_addr = inet_addr(IP);		// IP address
+		client_addr.sin_port = htons(atoi(port));     // port address
+		client_addr.sin_addr.s_addr = inet_addr(IP);  // IP address
 		int client_addr_len = sizeof(client_addr);
 		//Try to connect to Server
 		if (connect(client_s, (SOCKADDR*)&client_addr, sizeof(client_addr)) == SOCKET_ERROR) {
@@ -127,7 +127,6 @@ int main(int argc, char* argv[])
 			printf("File error. Coudn't open file\n");// CHECKING IF OPENED SUCCSESSFULLY
 			return -1;
 		}
-		//printf("File opened successfully\n");
 
 		// read File and send data:
 		char bit_str[27] = { 0 }, bit_str_hamming[32] = { 0 }, buffer[BUFFER_SIZE] = { 0 };
@@ -145,10 +144,8 @@ int main(int argc, char* argv[])
 			bytes_sent += read + strlen(bit_str_hamming) - strlen(bit_str);
 			strncpy(buffer + packet_size, bit_str_hamming, 31);
 			packet_size += 31;
-			//printf("%d\n", strlen(buffer));
 			if (packet_size == BUFFER_SIZE - 1)
 			{
-				//printf("sending packet num %d\n", i);
 				i++;
 				//send data
 				if (send(client_s, buffer, strlen(buffer), 0) == SOCKET_ERROR)
@@ -162,7 +159,6 @@ int main(int argc, char* argv[])
 				}
 				packet_size = 0;
 			}
-			//printf("%d %s\n", (char*)coded_chr, buffer);
 		}
 		if (packet_size != BUFFER_SIZE - 1)
 		{
@@ -178,10 +174,9 @@ int main(int argc, char* argv[])
 			{
 				buffer[i] = '\0';
 			}
-			//printf("sending packet num %d\n", i);
 		}
 
-		printf("Files length: %d\nsent %d:\n", bytes_read, bytes_sent);
+		printf("Files length: %d bytes\nsent: %d bytes\n", bytes_read, bytes_sent);
 
 		closesocket(client_s);
 		fclose(f);
