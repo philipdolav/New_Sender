@@ -3,7 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _CRTDBG_MAP_ALLOC
-#define BUFFER_SIZE 3101
+#define BUFFER_SIZE 1489
 #define no_init_all deprecated
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -137,11 +137,8 @@ int main(int argc, char* argv[])
 		{
 			
 			bytes_read += read;
-			if (read < 26) {
-				bit_str[read] = '\0';
-			}
 			hamming_encoder(bit_str, bit_str_hamming);
-			bytes_sent += read + strlen(bit_str_hamming) - strlen(bit_str);
+			bytes_sent += read + strlen(bit_str_hamming) - strlen(bit_str);// general case while we remember that the file is devidable in 26 bytes 
 			strncpy(buffer + packet_size, bit_str_hamming, 31);
 			packet_size += 31;
 			if (packet_size == BUFFER_SIZE - 1)
