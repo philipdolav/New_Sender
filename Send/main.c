@@ -3,7 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _CRTDBG_MAP_ALLOC
-#define BUFFER_SIZE 1489
+#define BUFFER_SIZE 1488 //closest multiplication of 31 to 1500
 #define no_init_all deprecated
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -141,11 +141,11 @@ int main(int argc, char* argv[])
 			bytes_sent += read + strlen(bit_str_hamming) - strlen(bit_str);// general case while we remember that the file is devidable in 26 bytes 
 			strncpy(buffer + packet_size, bit_str_hamming, 31);
 			packet_size += 31;
-			if (packet_size == BUFFER_SIZE - 1)
+			if (packet_size == BUFFER_SIZE)
 			{
 				i++;
 				//send data
-				if (send(client_s, buffer, strlen(buffer), 0) == SOCKET_ERROR)
+				if (send(client_s, buffer, packet_size, 0) == SOCKET_ERROR)
 				{
 					printf("send() failed with error code : %d", WSAGetLastError());
 					exit(EXIT_FAILURE);
@@ -157,10 +157,9 @@ int main(int argc, char* argv[])
 				packet_size = 0;
 			}
 		}
-		if (packet_size != BUFFER_SIZE - 1)
+		if (packet_size != BUFFER_SIZE)
 		{
-			for (i = packet_size; i <= BUFFER_SIZE-1; i++)
-				buffer[i] = '\0';
+			
 			//sends remaining data after eof
 			if (send(client_s, buffer, strlen(buffer), 0) == SOCKET_ERROR)
 			{
